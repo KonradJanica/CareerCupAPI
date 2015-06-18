@@ -36,13 +36,25 @@ public class QuestionSearch {
         Document doc = Jsoup.connect(url).userAgent(userAgent).timeout(timeout).get();
 
         // POPULATE QUESTION TEXT
-        String selector = "span[class=entry] p";
+        String selector = "span[class=entry] a p, a p+pre, a p+code";
         Elements elements = doc.select(selector); // get each element that matches the CSS selector
+        int x = 0;
+        String questionText = "";
         for (Element element : elements) {
-            String plainText = getPlainText(element); // format that element to plain text
-            Question nextQuestion = new Question(plainText);
-            questionsList.add(nextQuestion);
+            if (element.tagName() == "pre" || element.tagName() == "code") {
+                questionText += element.text();
+            } else {
+                questionText += getPlainText(element);
+            }
+            if (element.nextElementSibling() == null) {
+                Question nextQuestion = new Question(questionText);
+                questionsList.add(nextQuestion);
 //            System.out.println(plainText);
+                x++;
+                System.out.println(x + "size = " + questionsList.size());
+                System.out.println(questionText);
+                questionText = "";
+            }
         }
         // POPULATE ID
         selector = "span[class=entry] a[href~=/question\\?id]";
@@ -67,6 +79,18 @@ public class QuestionSearch {
             nextQuestion.company = companyTitle;
             index++;
 //            System.out.println(companyTitle);
+        }
+        // POPULATE COMPANY URL
+        selector = "span[class=company] img";
+        elements = doc.select(selector); // get each element that matches the CSS selector
+        index = 0;
+        for (Element element : elements) {
+            String companyImgURL = element.attr("src");
+            Question nextQuestion = questionsList.get(index);
+            nextQuestion.companyImgURL = companyImgURL;
+            index++;
+//            System.out.println(companyImgURL);
+//            System.out.println(index + "size = " + questionsList.size());
         }
         // POPULATE TAGS
         selector = "span[class=tags]";
