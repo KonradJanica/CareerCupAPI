@@ -38,22 +38,28 @@ public class QuestionSearch {
         // POPULATE QUESTION TEXT
         String selector = "span[class=entry] a p, a p+pre, a p+code";
         Elements elements = doc.select(selector); // get each element that matches the CSS selector
-        int x = 0;
+//        int x = 0;
         String questionText = "";
         for (Element element : elements) {
             if (element.tagName() == "pre" || element.tagName() == "code") {
                 questionText += element.text();
             } else {
-                questionText += getPlainText(element);
+                String plainText = getPlainText(element);
+                questionText += plainText;
             }
             if (element.nextElementSibling() == null) {
-                Question nextQuestion = new Question(questionText);
+                Question nextQuestion = new Question(questionText, urlParser.getParsedPageNumber());
+                String[] lineCounter = questionText.split("\n");
+                int lineCount = lineCounter.length + 1;
+                nextQuestion.questionTextLineCount = lineCount;
                 questionsList.add(nextQuestion);
 //            System.out.println(plainText);
-                x++;
-                System.out.println(x + "size = " + questionsList.size());
-                System.out.println(questionText);
+//                x++;
+//                System.out.println(x + "size = " + questionsList.size());
+//                System.out.println(questionText);
+//                System.out.println(lineCount);
                 questionText = "";
+                lineCount = 0;
             }
         }
         // POPULATE ID
@@ -146,16 +152,16 @@ public class QuestionSearch {
                 append("\n * ");
             else if (name.equals("dt"))
                 append("  ");
-            else if (StringUtil.in(name, "p", "h1", "h2", "h3", "h4", "h5", "tr"))
-                append("\n");
+//            else if (StringUtil.in(name, "p", "h1", "h2", "h3", "h4", "h5", "tr"))
+//                append("\n");
         }
 
         // hit when all of the node's children (if any) have been visited
         public void tail(Node node, int depth) {
             String name = node.nodeName();
-            if (StringUtil.in(name, "br", "dd", "dt", "p", "h1", "h2", "h3", "h4", "h5"))
+            if (StringUtil.in(name, "br", "dd", "dt", "p", "h1", "h2", "h3", "h4", "h5")) {
                 append("\n");
-            else if (name.equals("a"))
+            } else if (name.equals("a"))
                 append(String.format(" <%s>", node.absUrl("href")));
         }
 
